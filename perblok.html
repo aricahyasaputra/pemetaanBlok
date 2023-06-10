@@ -9,8 +9,9 @@
 	
 	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
 
-	<link rel="stylesheet" href="leaflet\leaflet.css" />
+	<link rel="stylesheet" href="leaflet/leaflet.css" />
 	<script src="leaflet\leaflet.js"></script>
+	<!-- <script src="jQuery\jquery-3.6.4.min.js"></script> -->
 
 	<style>
 		html, body {
@@ -18,10 +19,8 @@
 			margin: 0;
 		}
 		.leaflet-container {
-			height: 400px;
-			width: 600px;
-			max-width: 100%;
-			max-height: 100%;
+			height: 100%;
+			width: 100%;
 		}
 	</style>
 
@@ -33,9 +32,12 @@
 
 <script>
 
+
+
     var params = new URLSearchParams(window.location.search)
     var blokPeta = params.get("blok")
-    console.log(blokPeta);
+    console.log(typeof(blokPeta));
+
 
 	const map = L.map('map', {
 		crs: L.CRS.Simple,
@@ -45,23 +47,58 @@
 	const bounds = [[0,0], [2000, 2000]];
 	const image = L.imageOverlay(`res/${blokPeta}.jpg`, bounds).addTo(map);
 
-	const sol = L.latLng([483.5, 490.5]);
+
+
+
+	//var blok = [6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+	//var koordinatBlok = [[483.5, 490.5], [621, 707], [1035, 765], [1218, 1017], [1584, 1418], [1586, 1702], [1398, 1516], [1174, 1236], [1086, 1502], [930, 1124], [626, 1126], [322, 868], [310, 580]]
+	
+	const sol = L.latLng([1795.5082210781052,238.09672946044134]);
 	const marker = L.marker(sol).addTo(map);
 
+	const baseUrl = 'http://localhost:8383/'
 
-	var blok = [6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-	var koordinatBlok = [[483.5, 490.5], [621, 707], [1035, 765], [1218, 1017], [1584, 1418], [1586, 1702], [1398, 1516], [1174, 1236], [1086, 1502], [930, 1124], [626, 1126], [322, 868], [310, 580]]
-	
-
-
-	for(let i = 0;i<blok.length;i++){
-		new L.Marker([koordinatBlok[i][0], koordinatBlok[i][1]]).bindPopup(`${blok[i]}`, open).addTo(map);
+	async function getMarker(){
+		//e.preventDefault()
+		await fetch( baseUrl + `${blokPeta}`,
+		{
+			method: 'GET'
+		}).then(res => res.json())
+  		.then(json => tampilkanMarker(json));
 	}
-	map.setView([968, 1064], -2);
-    map.on("click", function(e){
-    new L.Marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-    console.log([e.latlng.lat, e.latlng.lng])
-    })
+
+	getMarker();
+
+	async function tampilkanMarker(json){
+		console.log(json)
+		map.setView([968, 1064], -2);
+		json.forEach((data) => {
+			if(data.lat!=0||data.lng!=0) new L.Marker([data.lat, data.lng]).bindPopup(`<label>NOP : ${data.NOP}</label><br>`+
+			`<label>Nama : ${data.namaWajibPajak}</label><br>` +
+			`<label>Luas : ${data.luasObjekPajak} m²</label><br>` +
+			`<label>Jumlah Pajak : Rp.${data.pajakDitetapkan}</label><br>` +
+			`<input type='button' value='Tampilkan Selengkapnya' class='marker-display-button' onclick="console.log('Nama : ${data.no}, ')"/>`).bindTooltip(`${data.namaWajibPajak}`,
+            {
+                permanent: true,
+                direction: 'center'
+            }).addTo(map);
+		})
+
+		// $(".marker-display-button").click(function () {
+        //     //console.log(tempMarker._latlng.lat);
+        //     //dataString = [tempMarker._latlng.lat,tempMarker._latlng.lng] ; // array?
+        //     //var jsonString = JSON.stringify(dataString);
+        //     console.log("Berhasil")
+        // });
+		// for(let i = 0;i<blok.length;i++){
+		// 	
+		// }
+		// 
+		map.on("click", function(e){
+		new L.Marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+		console.log([e.latlng.lat, e.latlng.lng])
+		})
+	}
 
 </script>
 
